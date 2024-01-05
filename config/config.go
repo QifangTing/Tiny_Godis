@@ -2,7 +2,7 @@ package config
 
 import (
     "bufio"
-    "go-redis/lib/logger"
+    "Tiny_Godis/lib/logger"
     "io"
     "os"
     "reflect"

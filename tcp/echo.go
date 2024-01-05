@@ -7,9 +7,9 @@ package tcp
 import (
 	"bufio"
 	"context"
-	"go-redis/lib/logger"
-	"go-redis/lib/sync/atomic"
-	"go-redis/lib/sync/wait"
+	"Tiny_Godis/lib/logger"
+	"Tiny_Godis/lib/sync/atomic"
+	"Tiny_Godis/lib/sync/wait"
 	"io"
 	"net"
 	"sync"

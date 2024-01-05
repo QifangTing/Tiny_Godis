@@ -7,8 +7,8 @@ package tcp
 import (
     "context"
     "fmt"
-    "go-redis/interface/tcp"
-    "go-redis/lib/logger"
+    "Tiny_Godis/interface/tcp"
+    "Tiny_Godis/lib/logger"
     "net"
     "os"
     "os/signal"

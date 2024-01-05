@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"go-redis/config"
-	"go-redis/lib/logger"
-	"go-redis/tcp"
-	EchoHandler "go-redis/tcp"
+	"Tiny_Godis/config"
+	"Tiny_Godis/lib/logger"
+	"Tiny_Godis/tcp"
+	EchoHandler "Tiny_Godis/tcp"
 	"os"
 )
 

@@ -5,11 +5,11 @@ package tcp
  */
 
 import (
-	"bufio"
-	"context"
 	"Tiny_Godis/lib/logger"
 	"Tiny_Godis/lib/sync/atomic"
 	"Tiny_Godis/lib/sync/wait"
+	"bufio"
+	"context"
 	"io"
 	"net"
 	"sync"
@@ -18,8 +18,8 @@ import (
 
 // EchoHandler echos received line to client, using for test
 type EchoHandler struct {
-	activeConn sync.Map
-	closing    atomic.Boolean
+	activeConn sync.Map       // 记录连接
+	closing    atomic.Boolean // 是否正在关闭，用原子布尔（避免并发竞争
 }
 
 // MakeEchoHandler creates EchoHandler
@@ -40,21 +40,20 @@ func (c *EchoClient) Close() error {
 	return nil
 }
 
-// Handle echos received line to client
+// Handle：处理客户端的连接
 func (h *EchoHandler) Handle(ctx context.Context, conn net.Conn) {
-	if h.closing.Get() {
-		// closing handler refuse new connection
+	if h.closing.Get() { // 当前正在关闭，不接受新连接
 		_ = conn.Close()
 	}
 
 	client := &EchoClient{
 		Conn: conn,
 	}
-	h.activeConn.Store(client, struct{}{})
+	h.activeConn.Store(client, struct{}{}) // 存储新连接，k-v的v中用空结构体
 
 	reader := bufio.NewReader(conn)
 	for {
-		// may occurs: client EOF, client timeout, server early close
+		// 使用缓存区接收用户发来的数据，使用\n作为结束
 		msg, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
@@ -67,7 +66,7 @@ func (h *EchoHandler) Handle(ctx context.Context, conn net.Conn) {
 		}
 		client.Waiting.Add(1)
 		b := []byte(msg)
-		_, _ = conn.Write(b)
+		_, _ = conn.Write(b) // 返回接受的数据
 		client.Waiting.Done()
 	}
 }

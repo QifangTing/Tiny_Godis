@@ -1,12 +1,12 @@
 package tcp
 
 import (
-    "context"
-    "net"
+	"context"
+	"net"
 )
 
-// Handler represents application server over tcp
+// 业务逻辑的处理接口
 type Handler interface {
-    Handle(ctx context.Context, conn net.Conn)
-    Close() error
+	Handle(ctx context.Context, conn net.Conn)
+	Close() error
 }

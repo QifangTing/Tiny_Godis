@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"Tiny_Godis/config"
 	"Tiny_Godis/lib/logger"
+	"Tiny_Godis/resp/handler"
 	"Tiny_Godis/tcp"
-	EchoHandler "Tiny_Godis/tcp"
+	"fmt"
 	"os"
 )
 
@@ -41,7 +41,7 @@ func main() {
 				config.Properties.Bind,
 				config.Properties.Port),
 		},
-		EchoHandler.MakeHandler())
+		handler.MakeHandler())
 	if err != nil {
 		logger.Error(err)
 	}

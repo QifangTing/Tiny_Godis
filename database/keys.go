@@ -2,6 +2,7 @@ package database
 
 import (
 	"Tiny_Godis/interface/resp"
+	"Tiny_Godis/lib/wildcard"
 	"Tiny_Godis/resp/reply"
 )
 
@@ -84,10 +85,25 @@ func execRenameNx(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(1)
 }
 
+// execKeys：keys *
+func execKeys(db *DB, args [][]byte) resp.Reply {
+	pattern := wildcard.CompilePattern(string(args[0]))
+	result := make([][]byte, 0)
+
+	db.data.ForEach(func(key string, val interface{}) bool {
+		if pattern.IsMatch(key) {
+			result = append(result, []byte(key))
+		}
+		return true
+	})
+	return reply.MakeMultiBulkReply(result)
+}
+
 func init() {
 	RegisterCommand("Del", execDel, -2)
-	RegisterCommand("EXISTS", execExists, -2)
+	RegisterCommand("Exist", execExists, -2)
 	RegisterCommand("FlushDB", execFlushDB, -1)
 	RegisterCommand("Rename", execRename, 3)
 	RegisterCommand("RenameNx", execRenameNx, 3)
+	RegisterCommand("Keys", execKeys, 2)
 }

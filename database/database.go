@@ -1,6 +1,7 @@
 package database
 
 import (
+	"Tiny_Godis/aof"
 	"Tiny_Godis/config"
 	"Tiny_Godis/interface/resp"
 	"Tiny_Godis/lib/logger"
@@ -13,7 +14,8 @@ import (
 
 // Database：一组db的集合
 type Database struct {
-	dbSet []*DB
+	dbSet      []*DB
+	aofHandler *aof.AofHandler
 }
 
 func NewDatabase() *Database {
@@ -27,6 +29,22 @@ func NewDatabase() *Database {
 		singleDB := makeDB()
 		singleDB.index = i
 		mdb.dbSet[i] = singleDB
+	}
+
+	if config.Properties.AppendOnly {
+		aofHandler, err := aof.NewAOFHandler(mdb)
+		if err != nil {
+			panic(err)
+		} else {
+			mdb.aofHandler = aofHandler
+		}
+		for _, db := range mdb.dbSet {
+			// ! avoid closure
+			singleDB := db
+			singleDB.addAof = func(line CmdLine) {
+				mdb.aofHandler.AddAof(singleDB.index, line)
+			}
+		}
 	}
 	return mdb
 }

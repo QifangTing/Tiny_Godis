@@ -2,6 +2,7 @@ package database
 
 import (
 	"Tiny_Godis/interface/resp"
+	"Tiny_Godis/lib/utils"
 	"Tiny_Godis/lib/wildcard"
 	"Tiny_Godis/resp/reply"
 )
@@ -12,8 +13,11 @@ func execDel(db *DB, args [][]byte) resp.Reply {
 	for i, v := range args {
 		keys[i] = string(v)
 	}
-
 	deleted := db.Removes(keys...)
+	if deleted > 0 {
+		tmp := utils.ToCmdLine2("del", args...)
+		db.addAof(tmp)
+	}
 	return reply.MakeIntReply(int64(deleted))
 }
 
@@ -33,6 +37,8 @@ func execExists(db *DB, args [][]byte) resp.Reply {
 // execFlushDB：flushdb
 func execFlushDB(db *DB, args [][]byte) resp.Reply {
 	db.Flush()
+	tmp := utils.ToCmdLine2("flushdb", args...)
+	db.addAof(tmp)
 	return &reply.OkReply{}
 }
 
@@ -62,6 +68,9 @@ func execRename(db *DB, args [][]byte) resp.Reply {
 	}
 	db.PutEntity(dest, entity)
 	db.Remove(src)
+
+	tmp := utils.ToCmdLine2("rename", args...)
+	db.addAof(tmp)
 	return &reply.OkReply{}
 }
 
@@ -82,6 +91,9 @@ func execRenameNx(db *DB, args [][]byte) resp.Reply {
 	}
 	db.PutEntity(dest, entity)
 	db.Remove(src)
+
+	tmp := utils.ToCmdLine2("renamenx", args...)
+	db.addAof(tmp)
 	return reply.MakeIntReply(1)
 }
 

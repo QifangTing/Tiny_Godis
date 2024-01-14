@@ -2,10 +2,13 @@ package aof
 
 import (
 	"Tiny_Godis/config"
-	"Tiny_Godis/database"
+	databaseface "Tiny_Godis/interface/database"
 	"Tiny_Godis/lib/logger"
 	"Tiny_Godis/lib/utils"
+	"Tiny_Godis/resp/connection"
+	"Tiny_Godis/resp/parser"
 	"Tiny_Godis/resp/reply"
+	"io"
 	"os"
 	"strconv"
 )
@@ -19,7 +22,7 @@ type payload struct {
 
 // AofHandler：1.从管道中接收数据 2.写入AOF文件
 type AofHandler struct {
-	db          database.Database
+	db          databaseface.Database
 	aofChan     chan *payload // 写文件的缓冲区
 	aofFile     *os.File
 	aofFilename string
@@ -27,7 +30,7 @@ type AofHandler struct {
 }
 
 // NewAofHandler
-func NewAOFHandler(db database.Database) (*AofHandler, error) {
+func NewAOFHandler(db databaseface.Database) (*AofHandler, error) {
 	handler := &AofHandler{}
 	handler.aofFilename = config.Properties.AppendFilename
 	handler.db = db
@@ -84,5 +87,36 @@ func (handler *AofHandler) handleAof() {
 
 // LoadAof：重启Redis后加载aof文件
 func (handler *AofHandler) LoadAof() {
+	file, err := os.Open(handler.aofFilename)
+	if err != nil {
+		logger.Warn(err)
+		return
+	}
+	defer file.Close()
 
+	ch := parser.ParseStream(file)
+	fakeConn := &connection.Connection{} // 用来记录DB
+
+	for p := range ch {
+		if p.Err != nil {
+			if p.Err == io.EOF {
+				break
+			}
+			logger.Error("parse error: " + p.Err.Error())
+			continue
+		}
+		if p.Data == nil {
+			logger.Error("empty payload")
+			continue
+		}
+		r, ok := p.Data.(*reply.MultiBulkReply) // 类型断言
+		if !ok {
+			logger.Error("require multi bulk reply")
+			continue
+		}
+		ret := handler.db.Exec(fakeConn, r.Args)
+		if reply.IsErrorReply(ret) {
+			logger.Error("exec err", err)
+		}
+	}
 }

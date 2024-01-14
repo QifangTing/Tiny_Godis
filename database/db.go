@@ -10,8 +10,9 @@ import (
 
 // Redis中的分数据库
 type DB struct {
-	index int
-	data  dict.Dict
+	index  int
+	data   dict.Dict
+	addAof func(CmdLine)
 }
 
 // 所有Redis的指令都写成这样的类型
@@ -22,7 +23,8 @@ type CmdLine = [][]byte
 
 func makeDB() *DB {
 	db := &DB{
-		data: dict.MakeSyncDict(),
+		data:   dict.MakeSyncDict(),
+		addAof: func(line CmdLine) {},
 	}
 	return db
 }

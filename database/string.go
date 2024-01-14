@@ -3,6 +3,7 @@ package database
 import (
 	"Tiny_Godis/interface/database"
 	"Tiny_Godis/interface/resp"
+	"Tiny_Godis/lib/utils"
 	"Tiny_Godis/resp/reply"
 )
 
@@ -39,6 +40,10 @@ func execSet(db *DB, args [][]byte) resp.Reply {
 		Data: value,
 	}
 	db.PutEntity(key, entity)
+
+	tmp := utils.ToCmdLine2("set", args...)
+	db.addAof(tmp)
+
 	return &reply.OkReply{}
 }
 
@@ -50,6 +55,10 @@ func execSetNX(db *DB, args [][]byte) resp.Reply {
 		Data: value,
 	}
 	result := db.PutIfAbsent(key, entity) // 返回值相应变化
+
+	tmp := utils.ToCmdLine2("setnx", args...)
+	db.addAof(tmp)
+
 	return reply.MakeIntReply(int64(result))
 }
 
@@ -60,6 +69,8 @@ func execGetSet(db *DB, args [][]byte) resp.Reply {
 	entity, exists := db.GetEntity(key)
 
 	db.PutEntity(key, &database.DataEntity{Data: value})
+	tmp := utils.ToCmdLine2("getset", args...)
+	db.addAof(tmp)
 
 	if !exists {
 		return reply.MakeNullBulkReply()

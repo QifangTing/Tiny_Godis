@@ -20,7 +20,7 @@ type ExecFunc func(db *DB, args [][]byte) resp.Reply
 // 二维的指令
 type CmdLine = [][]byte
 
-func MakeDB() *DB {
+func makeDB() *DB {
 	db := &DB{
 		data: dict.MakeSyncDict(),
 	}

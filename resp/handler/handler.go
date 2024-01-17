@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"Tiny_Godis/cluster"
+	"Tiny_Godis/config"
 	"Tiny_Godis/database"
 	databaseface "Tiny_Godis/interface/database"
 	"Tiny_Godis/lib/logger"
@@ -28,7 +30,13 @@ type RespHandler struct {
 
 func MakeHandler() *RespHandler {
 	var db databaseface.Database
-	db = database.NewDatabase()
+	// 判断是单机还是集群
+	if config.Properties.Self != "" && len(config.Properties.Peers) > 0 {
+		db = cluster.MakeClusterDatabase()
+	} else {
+		db = database.NewDatabase()
+	}
+
 	return &RespHandler{
 		db: db,
 	}
